@@ -1,0 +1,36 @@
+services:
+  app:
+    build: .
+    container_name: ai-app-extractor
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash}
+      - GEMINI_IMAGE_MODEL=${GEMINI_IMAGE_MODEL:-gemini-3.1-flash-lite-image}
+      - GEMINI_HQ_IMAGE_MODEL=${GEMINI_HQ_IMAGE_MODEL:-gemini-3.1-flash-image}
+      - APP_USERNAME=${APP_USERNAME:-user}
+      - APP_PASSWORD=${APP_PASSWORD}
+      - SESSION_DAYS=${SESSION_DAYS:-180}
+      - SESSION_SECRET=${SESSION_SECRET:-}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-30}
+      - MAX_IMAGE_MB=${MAX_IMAGE_MB:-12}
+      - MAX_DESCRIPTION_CHARS=${MAX_DESCRIPTION_CHARS:-3000}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-extractor.rule=Host(`${APP_DOMAIN:-extract.aaaaaaaaa9000.cloud}`)"
+      - "traefik.http.routers.ai-extractor.entrypoints=websecure"
+      - "traefik.http.routers.ai-extractor.tls=true"
+      - "traefik.http.routers.ai-extractor.tls.certresolver=letsencrypt"
+      - "traefik.http.services.ai-extractor.loadbalancer.server.port=3000"
+      - "traefik.docker.network=automation-stack_automation-network"
+
+networks:
+  default:
+    name: automation-stack_automation-network
+    external: true
